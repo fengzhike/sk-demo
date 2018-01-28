@@ -1,2 +1,0 @@
-# sk-demo
-sk-demo

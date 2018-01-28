@@ -1,23 +1,49 @@
-var gulp = require('gulp'),
-	babel = require('gulp-babel');
+const gulp = require('gulp');
+const babel = require('gulp-babel');
+const watch = require('gulp-watch');
+// const rollup = require('gulp-rollup');
+// const replace = require('rollup-plugin-replace');
 
-var jsxSrc = ['./src/**/*.jsx', '!./src/assets/*/*.jsx'];
+// 开发环境
+gulp.task('builddev', () => {
+    return watch('./src/nodeuii/**/*.js', {
+        ignoreInitial: false
+    }, () => {
+        gulp.src('./src/nodeuii/**/*.js')
+            .pipe(babel({
+                babelrc: false,
+                "plugins": [
+                    "transform-decorators-legacy",
+                    "transform-es2015-modules-commonjs"
+                ]
+            }))
+            .pipe(gulp.dest('./build/'))
+    })
+});
 
-gulp.task('jsx', () => {
-	gulp.src(jsxSrc)
-		.pipe(babel({
-			babelrc: false,
-			plugins: ["transform-es2015-modules-commonjs"]
-		}))
-		.pipe(gulp.dest('./build'))
-})
+// 上线环境
+gulp.task('buildprod', () => {
+    gulp.src('src/nodeuii/**/*.js')
+        .pipe(babel({
+            babelrc: false,
+            // "ignore": ['./src/nodeuii/app.js'],
+            "plugins": [
+                "transform-decorators-legacy",
+                "transform-es2015-modules-commonjs"
+            ]
+        }))
+        /*.pipe(rollup({
+            input: './src/nodeuii/app.js',
+            format: 'cjs',
+            "plugins": [
+                replace({
+                    'process.env.NODE_ENV': JSON.stringify('production')
+                })
+            ]
+        }))*/
+        .pipe(gulp.dest('./build/'))
+});
 
-gulp.task('watch', () => {
-	gulp.watch(jsxSrc, ['jsx'])
-})
+const _flag = (process.env.NODE_ENV == "production");
 
-gulp.task('default', ['watch', 'jsx'], () => {
-	setTimeout(() => {
-		console.log('gulp is watching....')
-	}, 100)
-})
+gulp.task('default', _flag ? ["buildprod"] : ["builddev"])
